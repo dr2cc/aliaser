@@ -47,9 +47,6 @@ func PostHandler(us *storage.URLStorage) http.HandlerFunc {
 			// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
 			//alias := "http://" + req.Host + generateAlias(us, url)
 
-			// // обрабатываем аргументы командной строки
-			//fmt.Println(config.FlagURL)
-			// server.ParseFlags()
 			alias := config.FlagURL + generateAlias(us, url)
 
 			// Устанавливаем статус ответа 201
