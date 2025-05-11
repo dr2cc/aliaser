@@ -1,12 +1,6 @@
 package main
 
-import (
-	"net/http"
-
-	"github.com/dr2cc/URLsShortener.git/internal/handlers"
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
-	"github.com/go-chi/chi"
-)
+import "github.com/dr2cc/URLsShortener.git/internal/server"
 
 func main() {
 	// //mux := http.NewServeMux()
@@ -25,22 +19,9 @@ func main() {
 	// http.ListenAndServe(":8080", mux)
 
 	// обрабатываем аргументы командной строки
-	parseFlags()
+	server.ParseFlags()
 
-	if err := run(); err != nil {
+	if err := server.Run(); err != nil {
 		panic(err)
 	}
-}
-
-// функция run будет полезна при инициализации зависимостей сервера перед запуском
-func run() error {
-	mux := chi.NewRouter()
-
-	storageInstance := storage.NewStorage()
-
-	mux.Post("/", handlers.PostHandler(storageInstance))
-	mux.Get("/{id}", handlers.GetHandler(storageInstance))
-
-	//fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(flagRunAddr, mux)
 }
