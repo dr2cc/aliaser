@@ -1,6 +1,9 @@
 package main
 
-import "github.com/dr2cc/URLsShortener.git/internal/server"
+import (
+	"github.com/dr2cc/URLsShortener.git/internal/config"
+	"github.com/dr2cc/URLsShortener.git/internal/server"
+)
 
 func main() {
 	// //mux := http.NewServeMux()
@@ -19,7 +22,9 @@ func main() {
 	// http.ListenAndServe(":8080", mux)
 
 	// обрабатываем аргументы командной строки
-	server.ParseFlags()
+	config.ParseFlags()
+
+	//fmt.Println(config.FlagURL)
 
 	if err := server.Run(); err != nil {
 		panic(err)

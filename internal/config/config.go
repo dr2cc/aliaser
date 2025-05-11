@@ -1,35 +1,23 @@
 package config
 
-// type Config struct {
-// 	Env         string `yaml:"env" env-default:"local"`
-// 	StoragePath string `yaml:"storage_path" env-required:"true"`
-// 	HTTPServer  `yaml:"http_server"`
-// }
+import (
+	"flag"
+)
 
-// type HTTPServer struct {
-// 	Address     string        `yaml:"address" env-default:"localhost:8080"`
-// 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
-// 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
-// 	User        string        `yaml:"user" env-required:"true"`
-// 	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
-// }
+// неэкспортированная переменная flagRunAddr содержит адрес и порт для запуска сервера
+var FlagRunAddr string
 
-// func MustLoad() *Config {
-// 	configPath := os.Getenv("CONFIG_PATH")
-// 	if configPath == "" {
-// 		log.Fatal("CONFIG_PATH is not set")
-// 	}
+// экспортируемая переменная, отвечает за базовый адрес результирующего сокращённого URL
+var FlagURL string
 
-// 	// check if file exists
-// 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-// 		log.Fatalf("config file does not exist: %s", configPath)
-// 	}
+// parseFlags обрабатывает аргументы командной строки
+// и сохраняет их значения в соответствующих переменных
+func ParseFlags() {
+	// регистрируем переменную flagRunAddr
+	// как аргумент -a со значением :8080 по умолчанию
+	flag.StringVar(&FlagRunAddr, "a", ":8080", "address and port to run server")
+	flag.StringVar(&FlagURL, "b", "http://localhost:8080", "host and port")
 
-// 	var cfg Config
-
-// 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-// 		log.Fatalf("cannot read config: %s", err)
-// 	}
-
-// 	return &cfg
-// }
+	// парсим переданные серверу аргументы в зарегистрированные переменные
+	flag.Parse()
+}

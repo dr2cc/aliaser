@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dr2cc/URLsShortener.git/internal/config"
 	"github.com/dr2cc/URLsShortener.git/internal/storage"
 )
 
@@ -43,9 +44,13 @@ func PostHandler(us *storage.URLStorage) http.HandlerFunc {
 
 			// Преобразуем тело запроса (тип []byte) в строку:
 			url := string(param)
-			// Генерируем короткий идентификатор и создаем запись в нашем хранилище
-			alias := "http://" + req.Host + generateAlias(us, url)
-			//alias :=  + generateAlias(us, url)
+			// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
+			//alias := "http://" + req.Host + generateAlias(us, url)
+
+			// // обрабатываем аргументы командной строки
+			//fmt.Println(config.FlagURL)
+			// server.ParseFlags()
+			alias := config.FlagURL + generateAlias(us, url)
 
 			// Устанавливаем статус ответа 201
 			w.WriteHeader(http.StatusCreated)
