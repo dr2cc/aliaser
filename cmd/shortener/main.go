@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/dr2cc/URLsShortener.git/internal/handlers"
 	"github.com/dr2cc/URLsShortener.git/internal/storage"
 	"github.com/go-chi/chi"
@@ -19,4 +21,6 @@ func main() {
 	// Обработчик chi
 	mux.Post("/", handlers.PostHandler(storageInstance))
 	mux.Get("/{id}", handlers.GetHandler(storageInstance))
+
+	http.ListenAndServe(":8080", mux)
 }
