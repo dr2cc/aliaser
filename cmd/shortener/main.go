@@ -29,4 +29,8 @@ func main() {
 	if err := server.Run(); err != nil {
 		panic(err)
 	}
+
+	// Объявить переменные окружения так:
+	// $env:SERVER_ADDRESS = "localhost:8089"
+	// $env:BASE_URL  = "http://localhost:9999"
 }

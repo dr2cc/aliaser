@@ -22,6 +22,8 @@ func ParseFlags() {
 	// разбираем переданные серверу аргументы в зарегистрированные переменные
 	flag.Parse()
 	// Добавляю переменные окружения
+	// $env:SERVER_ADDRESS = "localhost:8089"
+	// $env:BASE_URL  = "http://localhost:9999"
 	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
 		FlagRunAddr = envRunAddr
 	}
