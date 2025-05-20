@@ -4,6 +4,10 @@ import (
 	"errors"
 )
 
+// Коммандой go generate -v ./...
+// Создаем папку mocks , а в ней мок с именем Storager
+//
+//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=Storager
 type Storager interface {
 	InsertURL(id string, url string) error
 	GetURL(id string) (string, error)
