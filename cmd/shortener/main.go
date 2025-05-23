@@ -24,6 +24,10 @@ func main() {
 	if err := Run(); err != nil {
 		panic(err)
 	}
+
+	// Объявить переменные окружения так:
+	// $env:SERVER_ADDRESS = "localhost:8089"
+	// $env:BASE_URL  = "http://localhost:9999"
 }
 
 // инициализации зависимостей сервера перед запуском
