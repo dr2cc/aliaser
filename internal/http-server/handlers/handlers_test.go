@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
+	maps "github.com/dr2cc/URLsShortener.git/internal/storage/maps"
 )
 
 func TestGetHandler(t *testing.T) {
@@ -17,14 +17,14 @@ func TestGetHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		method     string
-		input      *storage.URLStorage
+		input      *maps.URLStorage
 		want       string
 		wantStatus int
 	}{
 		{
 			name:   "all good",
 			method: http.MethodGet,
-			input: &storage.URLStorage{
+			input: &maps.URLStorage{
 				Data: record,
 			},
 			want:       "https://practicum.yandex.ru/",
@@ -33,7 +33,7 @@ func TestGetHandler(t *testing.T) {
 		{
 			name:   "with bad method",
 			method: http.MethodPost,
-			input: &storage.URLStorage{
+			input: &maps.URLStorage{
 				Data: record,
 			},
 			want:       "Method not allowed",
@@ -42,7 +42,7 @@ func TestGetHandler(t *testing.T) {
 		{
 			name:   "key in input does not match /6ba7b811",
 			method: http.MethodGet,
-			input: &storage.URLStorage{
+			input: &maps.URLStorage{
 				Data: map[string]string{"6ba7b81": "https://practicum.yandex.ru/"},
 			},
 			want:       "URL with such id doesn't exist",
@@ -77,13 +77,13 @@ func TestPostHandler(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		ts         *storage.URLStorage
+		ts         *maps.URLStorage
 		method     string
 		statusCode int
 	}{
 		{
 			name: "all good",
-			ts: &storage.URLStorage{
+			ts: &maps.URLStorage{
 				Data: record,
 			},
 			method:     "POST",
@@ -91,7 +91,7 @@ func TestPostHandler(t *testing.T) {
 		},
 		{
 			name: "bad method",
-			ts: &storage.URLStorage{
+			ts: &maps.URLStorage{
 				Data: record,
 			},
 			method: "GET",

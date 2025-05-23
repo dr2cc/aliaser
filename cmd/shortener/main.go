@@ -1,32 +1,39 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/dr2cc/URLsShortener.git/internal/config"
-	"github.com/dr2cc/URLsShortener.git/internal/server"
+	"github.com/dr2cc/URLsShortener.git/internal/http-server/handlers"
+	maps "github.com/dr2cc/URLsShortener.git/internal/storage/maps"
+	"github.com/go-chi/chi"
 )
 
 func main() {
-	// //mux := http.NewServeMux()
-	// mux := chi.NewRouter()
-
+	// mux := http.NewServeMux()
 	// storageInstance := storage.NewStorage()
 
-	// // // Обработчик net/http
-	// //mux.HandleFunc("POST /{$}", handlers.PostHandler(storageInstance))
-	// //mux.HandleFunc("GET /{id}", handlers.GetHandler(storageInstance))
-
-	// // Обработчик chi
-	// mux.Post("/", handlers.PostHandler(storageInstance))
-	// mux.Get("/{id}", handlers.GetHandler(storageInstance))
+	// mux.HandleFunc("POST /{$}", handlers.PostHandler(storageInstance))
+	// mux.HandleFunc("GET /{id}", handlers.GetHandler(storageInstance))
 
 	// http.ListenAndServe(":8080", mux)
 
 	// обрабатываем аргументы командной строки
 	config.ParseFlags()
 
-	//fmt.Println(config.FlagURL)
-
-	if err := server.Run(); err != nil {
+	if err := Run(); err != nil {
 		panic(err)
 	}
+}
+
+// инициализации зависимостей сервера перед запуском
+func Run() error {
+	mux := chi.NewRouter()
+	storageInstance := maps.NewStorage()
+
+	mux.Post("/", handlers.PostHandler(storageInstance))
+	mux.Get("/{id}", handlers.GetHandler(storageInstance))
+
+	//fmt.Println("Running server on", flagRunAddr)
+	return http.ListenAndServe(config.FlagRunAddr, mux)
 }

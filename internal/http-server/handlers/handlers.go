@@ -5,34 +5,36 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/dr2cc/URLsShortener.git/internal/config"
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
+	maps "github.com/dr2cc/URLsShortener.git/internal/storage/maps"
 )
 
-func generateAlias(us *storage.URLStorage, url string) string {
+const aliasLength = 6
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+func generateAlias(us *maps.URLStorage, url string) string {
 
-	runes := []rune(url)
-	r.Shuffle(len(runes), func(i, j int) {
-		runes[i], runes[j] = runes[j], runes[i]
-	})
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	reg := regexp.MustCompile(`[^a-zA-Zа-яА-Я0-9]`)
-	//[:11] здесь сокращаю строку
-	id := reg.ReplaceAllString(string(runes[:11]), "")
+	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+		"abcdefghijklmnopqrstuvwxyz" +
+		"0123456789")
 
-	storage.MakeEntry(us, id, url)
+	b := make([]rune, aliasLength)
+	for i := range b {
+		b[i] = chars[rnd.Intn(len(chars))]
+	}
+
+	id := string(b)
+	maps.MakeEntry(us, id, url)
 
 	return "/" + id
 }
 
 // Функция PostHandler уровня пакета handlers
-func PostHandler(us *storage.URLStorage) http.HandlerFunc {
+func PostHandler(us *maps.URLStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
@@ -61,12 +63,12 @@ func PostHandler(us *storage.URLStorage) http.HandlerFunc {
 }
 
 // Функция GetHandler уровня пакета handlers
-func GetHandler(us *storage.URLStorage) http.HandlerFunc {
+func GetHandler(us *maps.URLStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
 			id := strings.TrimPrefix(req.RequestURI, "/")
-			url, err := storage.GetEntry(us, id)
+			url, err := maps.GetEntry(us, id)
 			if err != nil {
 				w.Header().Set("Location", err.Error())
 				w.WriteHeader(http.StatusBadRequest)
