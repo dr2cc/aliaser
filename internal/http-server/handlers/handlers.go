@@ -17,6 +17,7 @@ type URLSaver interface {
 	SaveURL(URL, alias string) (int64, error)
 }
 
+// 28.05 начать тут!!
 // Функция PostHandler уровня пакета handlers
 func PostHandler(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
