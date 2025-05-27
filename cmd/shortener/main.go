@@ -1,10 +1,9 @@
 package main
 
 import (
+	"aliaser/internal/handlers"
+	"aliaser/internal/storage"
 	"net/http"
-
-	"github.com/dr2cc/URLsShortener.git/internal/handlers"
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
 )
 
 func main() {

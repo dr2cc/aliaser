@@ -1,12 +1,11 @@
 package handlers
 
 import (
+	"aliaser/internal/storage"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
 )
 
 func TestGetHandler(t *testing.T) {
