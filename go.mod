@@ -1,4 +1,4 @@
-module github.com/dr2cc/URLsShortener.git
+module aliaser
 
 go 1.23.8
 
