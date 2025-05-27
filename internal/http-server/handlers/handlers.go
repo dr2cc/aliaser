@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"aliaser/internal/config"
+	"aliaser/internal/lib/random"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
-
-	"adv-url-shortener/internal/config"
-	"adv-url-shortener/internal/lib/random"
 )
 
 const aliasLength = 6
@@ -18,7 +18,7 @@ type URLSaver interface {
 }
 
 // Функция PostHandler уровня пакета handlers
-func PostHandler(urlSaver URLSaver) http.HandlerFunc {
+func PostHandler(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:

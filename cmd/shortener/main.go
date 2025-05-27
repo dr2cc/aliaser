@@ -1,33 +1,108 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"adv-url-shortener/internal/config"
-	"adv-url-shortener/internal/http-server/handlers"
-	"adv-url-shortener/internal/storage/sqlite"
+	"aliaser/internal/config"
+	"aliaser/internal/http-server/handlers"
+	mwLogger "aliaser/internal/http-server/middleware/logger"
+	"aliaser/internal/lib/logger/sl"
+	"aliaser/internal/storage/sqlite"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+)
+
+// // 27.05.2025 к переменым окружения и флагам вернусь позже
+// // ya #start#
+// func main() {
+// 	// обрабатываем аргументы командной строки
+// 	config.ParseFlags()
+
+// 	if err := Run(); err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Объявить переменные окружения так:
+// 	// $env:SERVER_ADDRESS = "localhost:8089"
+// 	// $env:BASE_URL  = "http://localhost:9999"
+// }
+
+// // инициализации зависимостей сервера перед запуском
+// func Run() error {
+// 	router := chi.NewRouter()
+
+// 	// // Примитивное хранилище - map
+// 	// storageInstance := maps.NewStorage()
+
+// 	// sqlite.New или "подключает" файл db , а если его нет то создает
+// 	storageInstance, err := sqlite.New("./storage.db")
+// 	if err != nil {
+// 		//log.Error("failed to initialize storage", sl.Err(err))
+// 		fmt.Println("failed to initialize storage")
+// 		//errors.New("failed to initialize storage")
+// 	}
+// 	//
+
+// 	router.Post("/", handlers.PostHandler(storageInstance))
+// 	router.Get("/{id}", handlers.GetHandler(storageInstance))
+
+// 	//fmt.Println("Running server on", flagRunAddr)
+// 	return http.ListenAndServe(config.FlagRunAddr, router)
+// }
+// // ya #end#
+
+// // adv #start#
+// Перед запуском нужно установить переменную окружения CONFIG_PATH
+//
+// $env:CONFIG_PATH = "C:\__git\adv-url-shortener\config\local.yaml"
+// $env:CONFIG_PATH = "C:\Mega\__git\adv-url-shortener\config\local.yaml"  (на ноуте)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 func main() {
-	// обрабатываем аргументы командной строки
-	config.ParseFlags()
+	cfg := config.MustLoad()
 
-	if err := Run(); err != nil {
-		panic(err)
-	}
+	//
+	log := setupLogger(cfg.Env)
+	log = log.With(slog.String("env", cfg.Env)) // к каждому сообщению будет добавляться поле с информацией о текущем окружении
 
-	// Объявить переменные окружения так:
-	// $env:SERVER_ADDRESS = "localhost:8089"
-	// $env:BASE_URL  = "http://localhost:9999"
-}
+	log.Info("initializing server", slog.String("address", cfg.Address)) // Помимо сообщения выведем параметр с адресом
+	log.Debug("logger debug mode enabled")
 
-// инициализации зависимостей сервера перед запуском
-func Run() error {
+	// // adv #start# storage
+	// storage, err := sqlite.New(cfg.StoragePath)
+	// if err != nil {
+	// 	log.Error("failed to initialize storage", sl.Err(err))
+	// }
+	// // adv #end#
+
+	//
 	router := chi.NewRouter()
 
+	router.Use(middleware.RequestID) // Добавляет request_id в каждый запрос, для трейсинга
+	router.Use(middleware.Logger)    // Логирование всех запросов
+	router.Use(middleware.Recoverer) // Если где-то внутри сервера (обработчика запроса) произойдет паника, приложение не должно упасть
+	//переопределяем внутренний логгер
+	router.Use(mwLogger.New(log))
+	router.Use(middleware.URLFormat) // Парсер URLов поступающих запросов
+
+	// // adv #start#
+	// router.Post("/", save.New(log, storage))
+	// // adv #end#
+
+	// ya #handlers#
 	// // Примитивное хранилище - map
 	// storageInstance := maps.NewStorage()
 
@@ -40,9 +115,67 @@ func Run() error {
 	}
 	//
 
-	router.Post("/", handlers.PostHandler(storageInstance))
-	router.Get("/{id}", handlers.GetHandler(storageInstance))
+	//router.Post("/", handlers.PostHandler(storageInstance))
+	//router.Get("/{id}", handlers.GetHandler(storageInstance))
 
-	//fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(config.FlagRunAddr, router)
+	router.Post("/", handlers.PostHandler(log, storageInstance))
+	//router.Get("/{id}", handlers.GetHandler(log, storageInstance))
+	// ya #handlers# #end#
+
+	// // примитивный запуск сервера
+	//return http.ListenAndServe(config.FlagRunAddr, router)
+
+	// adv #server#
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	srv := &http.Server{
+		Addr:    cfg.Address,
+		Handler: router,
+		//ReadTimeout:  cfg.HTTPServer.Timeout,
+		//WriteTimeout: cfg.HTTPServer.Timeout,
+		//IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start server")
+		}
+	}()
+
+	log.Info("server started")
+
+	<-done
+	log.Info("stopping server")
+
+	// TODO: move timeout to config
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error("failed to stop server", sl.Err(err))
+
+		return
+	}
+
+	// TODO: close storage
+
+	log.Info("server stopped")
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case envDev:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case envProd:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	}
+
+	return log
 }
