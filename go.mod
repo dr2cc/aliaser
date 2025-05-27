@@ -1,4 +1,4 @@
-module adv-url-shortener
+module aliaser
 
 go 1.23.8
 

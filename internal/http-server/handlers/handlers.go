@@ -1,13 +1,12 @@
 package handlers
 
 import (
+	"aliaser/internal/config"
+	"aliaser/internal/lib/random"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
-
-	"adv-url-shortener/internal/config"
-	"adv-url-shortener/internal/lib/random"
 )
 
 const aliasLength = 6

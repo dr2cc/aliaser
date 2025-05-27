@@ -1,12 +1,11 @@
 package main
 
 import (
+	"aliaser/internal/config"
+	"aliaser/internal/http-server/handlers"
+	"aliaser/internal/storage/sqlite"
 	"fmt"
 	"net/http"
-
-	"adv-url-shortener/internal/config"
-	"adv-url-shortener/internal/http-server/handlers"
-	"adv-url-shortener/internal/storage/sqlite"
 
 	"github.com/go-chi/chi"
 )

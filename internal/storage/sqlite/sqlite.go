@@ -1,11 +1,10 @@
 package sqlite
 
 import (
+	"aliaser/internal/storage"
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"adv-url-shortener/internal/storage"
 
 	"github.com/mattn/go-sqlite3"
 )
