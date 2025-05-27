@@ -1,23 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/dr2cc/URLsShortener.git/internal/config"
-	"github.com/dr2cc/URLsShortener.git/internal/http-server/handlers"
-	maps "github.com/dr2cc/URLsShortener.git/internal/storage/maps"
+	"adv-url-shortener/internal/config"
+	"adv-url-shortener/internal/http-server/handlers"
+	"adv-url-shortener/internal/storage/sqlite"
+
 	"github.com/go-chi/chi"
 )
 
 func main() {
-	// mux := http.NewServeMux()
-	// storageInstance := storage.NewStorage()
-
-	// mux.HandleFunc("POST /{$}", handlers.PostHandler(storageInstance))
-	// mux.HandleFunc("GET /{id}", handlers.GetHandler(storageInstance))
-
-	// http.ListenAndServe(":8080", mux)
-
 	// обрабатываем аргументы командной строки
 	config.ParseFlags()
 
@@ -32,12 +26,23 @@ func main() {
 
 // инициализации зависимостей сервера перед запуском
 func Run() error {
-	mux := chi.NewRouter()
-	storageInstance := maps.NewStorage()
+	router := chi.NewRouter()
 
-	mux.Post("/", handlers.PostHandler(storageInstance))
-	mux.Get("/{id}", handlers.GetHandler(storageInstance))
+	// // Примитивное хранилище - map
+	// storageInstance := maps.NewStorage()
+
+	// sqlite.New или "подключает" файл db , а если его нет то создает
+	storageInstance, err := sqlite.New("./storage.db")
+	if err != nil {
+		//log.Error("failed to initialize storage", sl.Err(err))
+		fmt.Println("failed to initialize storage")
+		//errors.New("failed to initialize storage")
+	}
+	//
+
+	router.Post("/", handlers.PostHandler(storageInstance))
+	router.Get("/{id}", handlers.GetHandler(storageInstance))
 
 	//fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(config.FlagRunAddr, mux)
+	return http.ListenAndServe(config.FlagRunAddr, router)
 }

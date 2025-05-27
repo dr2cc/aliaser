@@ -14,20 +14,18 @@ var FlagURL string
 // ParseFlags обрабатывает аргументы командной строки
 // и сохраняет их значения в соответствующих переменных
 func ParseFlags() {
-	// регистрируем переменную flagRunAddr
-	// как аргумент -a со значением :8080 по умолчанию
+	// регистрируем переменные
 	flag.StringVar(&FlagRunAddr, "a", ":8080", "address and port to run server")
 	flag.StringVar(&FlagURL, "b", "http://localhost:8080", "host and port")
-
-	// разбираем переданные серверу аргументы в зарегистрированные переменные
+	// разбираем переданные серверу аргументы коммандной строки в зарегистрированные переменные
 	flag.Parse()
-	// Добавляю переменные окружения
+
+	// Добавляем переменные окружения
 	// $env:SERVER_ADDRESS = "localhost:8089"
 	// $env:BASE_URL  = "http://localhost:9999"
 	if envRunAddr := os.Getenv("SERVER_ADDRESS"); envRunAddr != "" {
 		FlagRunAddr = envRunAddr
 	}
-
 	if envURL := os.Getenv("BASE_URL"); envURL != "" {
 		FlagURL = envURL
 	}

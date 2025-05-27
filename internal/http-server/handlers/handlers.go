@@ -3,42 +3,26 @@ package handlers
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/dr2cc/URLsShortener.git/internal/config"
-	maps "github.com/dr2cc/URLsShortener.git/internal/storage/maps"
+	"adv-url-shortener/internal/config"
+	"adv-url-shortener/internal/lib/random"
 )
 
 const aliasLength = 6
 
-func generateAlias(us *maps.URLStorage, url string) string {
-
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-		"abcdefghijklmnopqrstuvwxyz" +
-		"0123456789")
-
-	b := make([]rune, aliasLength)
-	for i := range b {
-		b[i] = chars[rnd.Intn(len(chars))]
-	}
-
-	id := string(b)
-	maps.MakeEntry(us, id, url)
-
-	return "/" + id
+//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
+type URLSaver interface {
+	SaveURL(URL, alias string) (int64, error)
 }
 
 // Функция PostHandler уровня пакета handlers
-func PostHandler(us *maps.URLStorage) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		switch req.Method {
+func PostHandler(urlSaver URLSaver) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
 		case http.MethodPost:
-			param, err := io.ReadAll(req.Body)
+			param, err := io.ReadAll(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -46,14 +30,27 @@ func PostHandler(us *maps.URLStorage) http.HandlerFunc {
 
 			// Преобразуем тело запроса (тип []byte) в строку:
 			url := string(param)
-			// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
-			//alias := "http://" + req.Host + generateAlias(us, url)
 
-			alias := config.FlagURL + generateAlias(us, url)
+			// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
+			// //config.FlagURL соответствует "http://" + req.Host если не использовать аргументы
+			alias := random.NewRandomString(aliasLength)
+
+			// Объект urlSaver (переданный при создании хендлера из main)
+			// используется именно тут!
+			id, err := urlSaver.SaveURL(url, alias)
+
+			if err != nil {
+				fmt.Println("failed to add url")
+				return
+			}
+
+			// возвращаем ответ с сообщением об успехе
+			// Это калька, в таком виде он не нужен
+			fmt.Println("url added, id= ", id)
 
 			// Устанавливаем статус ответа 201
 			w.WriteHeader(http.StatusCreated)
-			fmt.Fprint(w, alias)
+			fmt.Fprint(w, config.FlagURL+"/"+alias)
 
 		default:
 			w.Header().Set("Location", "Method not allowed")
@@ -62,13 +59,20 @@ func PostHandler(us *maps.URLStorage) http.HandlerFunc {
 	}
 }
 
+// моя выдумка
+type URLGeter interface {
+	GetURL(alias string) (string, error)
+}
+
 // Функция GetHandler уровня пакета handlers
-func GetHandler(us *maps.URLStorage) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		switch req.Method {
+func GetHandler(urlGeter URLGeter) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
 		case http.MethodGet:
-			id := strings.TrimPrefix(req.RequestURI, "/")
-			url, err := maps.GetEntry(us, id)
+			alias := strings.TrimPrefix(r.RequestURI, "/")
+
+			//url, err := maps.GetEntry(us, id)
+			url, err := urlGeter.GetURL(alias)
 			if err != nil {
 				w.Header().Set("Location", err.Error())
 				w.WriteHeader(http.StatusBadRequest)
