@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/dr2cc/URLsShortener.git/internal/config"
-	"github.com/dr2cc/URLsShortener.git/internal/server"
+	"aliaser/internal/config"
+	"aliaser/internal/server"
 )
 
 func main() {

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"aliaser/internal/config"
+	"aliaser/internal/storage"
 	"fmt"
 	"io"
 	"math/rand"
@@ -8,9 +10,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/dr2cc/URLsShortener.git/internal/config"
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
 )
 
 func generateAlias(us *storage.URLStorage, url string) string {
