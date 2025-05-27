@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"aliaser/internal/storage"
 	"fmt"
 	"io"
 	"math/rand"
@@ -8,8 +9,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/dr2cc/URLsShortener.git/internal/storage"
 )
 
 func generateShortURL(urlList *storage.URLStorage, longURL string) string {
