@@ -17,7 +17,6 @@ type URLSaver interface {
 	SaveURL(URL, alias string) (int64, error)
 }
 
-// 28.05 начать тут!!
 // Функция PostHandler уровня пакета handlers
 func PostHandler(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,14 +43,16 @@ func PostHandler(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 				fmt.Println("failed to add url")
 				return
 			}
-
 			// возвращаем ответ с сообщением об успехе
-			// Это калька, в таком виде он не нужен
-			fmt.Println("url added, id= ", id)
+			log.Info("url added", slog.Int64("id", id))
 
 			// Устанавливаем статус ответа 201
 			w.WriteHeader(http.StatusCreated)
-			fmt.Fprint(w, config.FlagURL+"/"+alias)
+			if config.FlagURL == "none" {
+				fmt.Fprint(w, "http://"+r.Host+"/"+alias)
+			} else {
+				fmt.Fprint(w, config.FlagURL+"/"+alias)
+			}
 
 		default:
 			w.Header().Set("Location", "Method not allowed")
@@ -66,7 +67,7 @@ type URLGeter interface {
 }
 
 // Функция GetHandler уровня пакета handlers
-func GetHandler(urlGeter URLGeter) http.HandlerFunc {
+func GetHandler(log *slog.Logger, urlGeter URLGeter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:

@@ -72,6 +72,13 @@ const (
 )
 
 func main() {
+	// 	// обрабатываем аргументы командной строки
+	config.ParseFlags()
+
+	// 	if err := Run(); err != nil {
+	// 		panic(err)
+	// 	}
+
 	cfg := config.MustLoad()
 
 	//
@@ -80,13 +87,6 @@ func main() {
 
 	log.Info("initializing server", slog.String("address", cfg.Address)) // Помимо сообщения выведем параметр с адресом
 	log.Debug("logger debug mode enabled")
-
-	// // adv #start# storage
-	// storage, err := sqlite.New(cfg.StoragePath)
-	// if err != nil {
-	// 	log.Error("failed to initialize storage", sl.Err(err))
-	// }
-	// // adv #end#
 
 	//
 	router := chi.NewRouter()
@@ -119,7 +119,7 @@ func main() {
 	//router.Get("/{id}", handlers.GetHandler(storageInstance))
 
 	router.Post("/", handlers.PostHandler(log, storageInstance))
-	//router.Get("/{id}", handlers.GetHandler(log, storageInstance))
+	router.Get("/{id}", handlers.GetHandler(log, storageInstance))
 	// ya #handlers# #end#
 
 	// // примитивный запуск сервера

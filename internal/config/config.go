@@ -16,8 +16,8 @@ var FlagURL string
 // и сохраняет их значения в соответствующих переменных
 func ParseFlags() {
 	// регистрируем переменные
-	flag.StringVar(&FlagRunAddr, "a", ":8080", "address and port to run server")
-	flag.StringVar(&FlagURL, "b", "http://localhost:8080", "host and port")
+	flag.StringVar(&FlagRunAddr, "a", "localhost:8080", "address and port to run server")
+	flag.StringVar(&FlagURL, "b", "none", "host and port")
 	// разбираем переданные серверу аргументы коммандной строки в зарегистрированные переменные
 	flag.Parse()
 
@@ -59,7 +59,7 @@ func MustLoad() *Config {
 		Env:         "local",
 		StoragePath: "./storage.db",
 		HTTPServer: HTTPServer{
-			Address: "localhost:8080",
+			Address: FlagRunAddr, //"localhost:8080",
 			//Timeout:     5,
 			//IdleTimeout: 60,
 		},
