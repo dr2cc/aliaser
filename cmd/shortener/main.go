@@ -12,7 +12,6 @@ import (
 	"aliaser/internal/lib/logger/sl"
 
 	"context"
-	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -71,7 +70,6 @@ func main() {
 	storageInstance, err := sqlite.New("./storage.db")
 	if err != nil {
 		log.Error("failed to initialize storage", sl.Err(err))
-		errors.New("failed to initialize storage")
 	}
 
 	router.Post("/", handlers.PostHandler(log, storageInstance))
