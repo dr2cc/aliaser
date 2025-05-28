@@ -4,7 +4,6 @@ import (
 	"aliaser/internal/config"
 	"aliaser/internal/http-server/handlers"
 	"aliaser/internal/storage/sqlite"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -13,6 +12,7 @@ import (
 	"aliaser/internal/lib/logger/sl"
 
 	"context"
+	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -70,11 +70,9 @@ func main() {
 	// sqlite.New или "подключает" файл db , а если его нет то создает
 	storageInstance, err := sqlite.New("./storage.db")
 	if err != nil {
-		//log.Error("failed to initialize storage", sl.Err(err))
-		fmt.Println("failed to initialize storage")
-		//errors.New("failed to initialize storage")
+		log.Error("failed to initialize storage", sl.Err(err))
+		errors.New("failed to initialize storage")
 	}
-	//
 
 	router.Post("/", handlers.PostHandler(log, storageInstance))
 	router.Get("/{id}", handlers.GetHandler(log, storageInstance))
