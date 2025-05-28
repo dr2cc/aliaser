@@ -22,47 +22,11 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
-// // 27.05.2025 к переменым окружения и флагам вернусь позже
-// // ya #start#
-// func main() {
-// 	// обрабатываем аргументы командной строки
-// 	config.ParseFlags()
+// Объявить переменные окружения из iter5 так:
+// $env:SERVER_ADDRESS = "localhost:8089"
+// $env:BASE_URL  = "http://localhost:9999"
 
-// 	if err := Run(); err != nil {
-// 		panic(err)
-// 	}
-
-// 	// Объявить переменные окружения так:
-// 	// $env:SERVER_ADDRESS = "localhost:8089"
-// 	// $env:BASE_URL  = "http://localhost:9999"
-// }
-
-// // инициализации зависимостей сервера перед запуском
-// func Run() error {
-// 	router := chi.NewRouter()
-
-// 	// // Примитивное хранилище - map
-// 	// storageInstance := maps.NewStorage()
-
-// 	// sqlite.New или "подключает" файл db , а если его нет то создает
-// 	storageInstance, err := sqlite.New("./storage.db")
-// 	if err != nil {
-// 		//log.Error("failed to initialize storage", sl.Err(err))
-// 		fmt.Println("failed to initialize storage")
-// 		//errors.New("failed to initialize storage")
-// 	}
-// 	//
-
-// 	router.Post("/", handlers.PostHandler(storageInstance))
-// 	router.Get("/{id}", handlers.GetHandler(storageInstance))
-
-// 	//fmt.Println("Running server on", flagRunAddr)
-// 	return http.ListenAndServe(config.FlagRunAddr, router)
-// }
-// // ya #end#
-
-// // adv #start#
-// Перед запуском нужно установить переменную окружения CONFIG_PATH
+// Если использую local.yaml , то перед запуском нужно установить переменную окружения CONFIG_PATH
 //
 // $env:CONFIG_PATH = "C:\__git\adv-url-shortener\config\local.yaml"
 // $env:CONFIG_PATH = "C:\Mega\__git\adv-url-shortener\config\local.yaml"  (на ноуте)
@@ -74,12 +38,8 @@ const (
 )
 
 func main() {
-	// 	// обрабатываем аргументы командной строки
+	// обрабатываем аргументы командной строки
 	config.ParseFlags()
-
-	// 	if err := Run(); err != nil {
-	// 		panic(err)
-	// 	}
 
 	cfg := config.MustLoad()
 
@@ -104,7 +64,6 @@ func main() {
 	// router.Post("/", save.New(log, storage))
 	// // adv #end#
 
-	// ya #handlers#
 	// // Примитивное хранилище - map
 	// storageInstance := maps.NewStorage()
 
@@ -117,12 +76,8 @@ func main() {
 	}
 	//
 
-	//router.Post("/", handlers.PostHandler(storageInstance))
-	//router.Get("/{id}", handlers.GetHandler(storageInstance))
-
 	router.Post("/", handlers.PostHandler(log, storageInstance))
 	router.Get("/{id}", handlers.GetHandler(log, storageInstance))
-	// ya #handlers# #end#
 
 	// // примитивный запуск сервера
 	//return http.ListenAndServe(config.FlagRunAddr, router)
