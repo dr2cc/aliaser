@@ -1,23 +1,31 @@
 package main
 
 import (
-	"context"
+	"aliaser/internal/config"
+	"aliaser/internal/http-server/handlers"
+	"aliaser/internal/storage/sqlite"
 	"fmt"
-	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi"
+
+	mwLogger "aliaser/internal/http-server/middleware/logger"
+	"aliaser/internal/lib/logger/sl"
+
+	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"aliaser/internal/config"
-	"aliaser/internal/http-server/handlers"
-	mwLogger "aliaser/internal/http-server/middleware/logger"
-	"aliaser/internal/lib/logger/sl"
-	"aliaser/internal/storage/sqlite"
-
-	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	// "aliaser/internal/config"
+	// "aliaser/internal/http-server/handlers"
+	// "aliaser/internal/storage/sqlite"
+	// "fmt"
+	// "net/http"
+	// "github.com/go-chi/chi"
 )
 
 // // 27.05.2025 к переменым окружения и флагам вернусь позже
