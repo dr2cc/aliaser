@@ -1,5 +1,7 @@
 # go-musthave-shortener-tpl
 
+go run .\cmd\shortener\main.go
+
 Шаблон репозитория для трека «Сервис сокращения URL».
 
 ## Начало работы
