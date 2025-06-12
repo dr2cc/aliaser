@@ -3,7 +3,8 @@ package main
 import (
 	"aliaser/internal/config"
 	"aliaser/internal/http-server/handlers"
-	"aliaser/internal/storage/maps"
+	"aliaser/internal/storage/sqlite"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -25,18 +26,21 @@ func main() {
 // инициализации зависимостей сервера перед запуском
 func Run() error {
 	router := chi.NewRouter()
+	//!!! Правильно работающий iter5 (спокойно работающий с двумя видами хранилищ)
+	// сделан в mockPract (примерно на 09.06.25)
+	// Здесь старый вариант, плохо работающий!
 
-	// Примитивное хранилище - map
-	storageInstance := maps.NewStorage()
+	// // Примитивное хранилище - map
+	// storageInstance := maps.NewStorage()
 
-	// // sqlite.New или "подключает" файл db , а если его нет то создает
-	// storageInstance, err := sqlite.New("./storage.db")
-	// if err != nil {
-	// 	//log.Error("failed to initialize storage", sl.Err(err))
-	// 	fmt.Println("failed to initialize storage")
-	// 	//errors.New("failed to initialize storage")
-	// }
-	// //
+	// sqlite.New или "подключает" файл db , а если его нет то создает
+	storageInstance, err := sqlite.New("./storage.db")
+	if err != nil {
+		//log.Error("failed to initialize storage", sl.Err(err))
+		fmt.Println("failed to initialize storage")
+		//errors.New("failed to initialize storage")
+	}
+	//
 
 	router.Post("/", handlers.PostHandler(storageInstance))
 	router.Get("/{id}", handlers.GetHandler(storageInstance))
