@@ -3,8 +3,7 @@ package main
 import (
 	"aliaser/internal/config"
 	"aliaser/internal/http-server/handlers"
-	"aliaser/internal/storage/sqlite"
-	"fmt"
+	"aliaser/internal/storage/maps"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -27,17 +26,17 @@ func main() {
 func Run() error {
 	router := chi.NewRouter()
 
-	// // Примитивное хранилище - map
-	// storageInstance := maps.NewStorage()
+	// Примитивное хранилище - map
+	storageInstance := maps.NewStorage()
 
-	// sqlite.New или "подключает" файл db , а если его нет то создает
-	storageInstance, err := sqlite.New("./storage.db")
-	if err != nil {
-		//log.Error("failed to initialize storage", sl.Err(err))
-		fmt.Println("failed to initialize storage")
-		//errors.New("failed to initialize storage")
-	}
-	//
+	// // sqlite.New или "подключает" файл db , а если его нет то создает
+	// storageInstance, err := sqlite.New("./storage.db")
+	// if err != nil {
+	// 	//log.Error("failed to initialize storage", sl.Err(err))
+	// 	fmt.Println("failed to initialize storage")
+	// 	//errors.New("failed to initialize storage")
+	// }
+	// //
 
 	router.Post("/", handlers.PostHandler(storageInstance))
 	router.Get("/{id}", handlers.GetHandler(storageInstance))
