@@ -2,46 +2,125 @@ package handlers
 
 import (
 	"net/http"
-	"reflect"
+	"net/http/httptest"
+	"strings"
 	"testing"
+
+	maps "aliaser/internal/storage/maps"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestPostHandler(t *testing.T) {
-	type args struct {
-		urlSaver URLSaver
-	}
+func TestGetHandler(t *testing.T) {
+	//Здесь общие для всех тестов данные
+	shortURL := "6ba7b811"
+	record := map[string]string{shortURL: "https://practicum.yandex.ru/"}
+
 	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
+		name       string
+		method     string
+		input      *maps.URLStorage
+		want       string
+		wantStatus int
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "all good",
+			method: http.MethodGet,
+			input: &maps.URLStorage{
+				Data: record,
+			},
+			want:       "https://practicum.yandex.ru/",
+			wantStatus: http.StatusTemporaryRedirect,
+		},
+		{
+			name:   "with bad method",
+			method: http.MethodPost,
+			input: &maps.URLStorage{
+				Data: record,
+			},
+			want:       "Method not allowed",
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "key in input does not match /6ba7b811",
+			method: http.MethodGet,
+			input: &maps.URLStorage{
+				Data: map[string]string{"6ba7b81": "https://practicum.yandex.ru/"},
+			},
+			want:       "URL with such id doesn't exist",
+			wantStatus: http.StatusBadRequest,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := PostHandler(tt.args.urlSaver); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("PostHandler() = %v, want %v", got, tt.want)
-			}
+			req := httptest.NewRequest(tt.method, "/"+shortURL, nil) //body)
+			rr := httptest.NewRecorder()
+
+			handler := http.HandlerFunc(GetHandler(tt.input))
+			handler.ServeHTTP(rr, req)
+
+			//// Пакет testify
+			// // Если нужно, то так обрабатывают ошибку в testfy
+			// require.NoError(t, err)
+			require.Equal(t, rr.Code, tt.wantStatus)
+			require.Equal(t, strings.TrimSpace(rr.Header()["Location"][0]), tt.want)
+
+			//// Пакет testing
+			// if gotStatus := rr.Code; gotStatus != tt.wantStatus {
+			// 	t.Errorf("Want status '%d', got '%d'", tt.wantStatus, gotStatus)
+			// }
+
+			// if gotLocation := strings.TrimSpace(rr.Header()["Location"][0]); gotLocation != tt.want {
+			// 	t.Errorf("Want location'%s', got '%s'", tt.want, gotLocation)
+			// }
 		})
 	}
 }
 
-func TestGetHandler(t *testing.T) {
+func TestPostHandler(t *testing.T) {
+	// POST готов.
+	// Проверяю нормальную работу и не правильный метод
+
 	type args struct {
-		urlGeter URLGeter
+		urlSaver URLSaver
 	}
+
 	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
+		name   string
+		ts     args
+		method string
+		want   int
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "all good",
+			ts:     args{maps.NewURLStorage(make(map[string]string))},
+			method: "POST",
+			want:   http.StatusCreated,
+		},
+		{
+			name:   "bad method",
+			ts:     args{maps.NewURLStorage(make(map[string]string))},
+			method: "GET",
+			want:   http.StatusBadRequest,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetHandler(tt.args.urlGeter); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetHandler() = %v, want %v", got, tt.want)
-			}
+			req := httptest.NewRequest(tt.method, "/", nil)
+			rr := httptest.NewRecorder()
+
+			handler := http.HandlerFunc(PostHandler(tt.ts.urlSaver))
+			handler.ServeHTTP(rr, req)
+			// Пакет tesify
+			require.Equal(t, rr.Code, tt.want)
+
+			//// Пакет testing
+			// // Работает!
+			// if status := rr.Code; status != tt.want {
+			// 	t.Errorf("Want status '%d', got '%d'", tt.want, rr.Code)
+			// }
 		})
 	}
 }
