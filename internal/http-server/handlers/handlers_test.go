@@ -63,8 +63,8 @@ func TestGetHandler(t *testing.T) {
 			//// Пакет testify
 			// // Если нужно, то так обрабатывают ошибку в testfy
 			// require.NoError(t, err)
-			require.Equal(t, rr.Code, tt.wantStatus)
-			require.Equal(t, strings.TrimSpace(rr.Header()["Location"][0]), tt.want)
+			require.Equal(t, tt.wantStatus, rr.Code)
+			require.Equal(t, tt.want, strings.TrimSpace(rr.Header()["Location"][0]))
 
 			//// Пакет testing
 			// if gotStatus := rr.Code; gotStatus != tt.wantStatus {
