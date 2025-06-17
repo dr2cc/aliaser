@@ -54,7 +54,7 @@ func TestGetHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "/"+shortURL, nil) //body)
+			req := httptest.NewRequest(tt.method, "/"+shortURL, nil) // bytes.NewBufferString("https://practicum.yandex.ru/")) //body)
 			rr := httptest.NewRecorder()
 
 			handler := http.HandlerFunc(GetHandler(tt.input))
@@ -108,13 +108,16 @@ func TestPostHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "/", nil)
+			req := httptest.NewRequest(tt.method, "/", nil) // bytes.NewBufferString("https://practicum.yandex.ru/"))
+			req.Header.Set("Content-Type", "text/plain")
+
 			rr := httptest.NewRecorder()
 
 			handler := http.HandlerFunc(PostHandler(tt.ts.urlSaver))
 			handler.ServeHTTP(rr, req)
+
 			// Пакет tesify
-			require.Equal(t, rr.Code, tt.want)
+			require.Equal(t, tt.want, rr.Code)
 
 			//// Пакет testing
 			// // Работает!

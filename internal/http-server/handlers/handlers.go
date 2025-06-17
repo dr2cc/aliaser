@@ -29,42 +29,49 @@ type URLSaver interface {
 func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			//switch r.Method {
-			//case http.MethodPost:
-			param, err := io.ReadAll(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
+			contentType := r.Header.Get("Content-Type")
+			if strings.Contains(contentType, "text/plain") {
+				// param, err := io.ReadAll(r.Body)
+				// if err != nil {
+				// 	http.Error(w, err.Error(), http.StatusBadRequest)
+				// 	return
+				// }
+
+				body, err := io.ReadAll(r.Body)
+				if err != nil {
+					http.Error(w, "Failed to read request body", http.StatusBadRequest)
+					return
+				}
+				defer r.Body.Close()
+
+				// Преобразуем тело запроса (тип []byte) в строку:
+				url := string(body)
+
+				// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
+				// //config.FlagURL соответствует "http://" + req.Host если не использовать аргументы
+				alias := random.NewRandomString(aliasLength)
+
+				// Объект urlSaver (переданный при создании хендлера из main)
+				// используется именно тут!
+				if urlSaver.SaveURL(url, alias) != nil {
+					fmt.Println("failed to add url")
+					return
+				}
+
+				// id, err := urlSaver.SaveURL(url, alias)
+
+				// if err != nil {
+				// 	fmt.Println("failed to add url")
+				// 	return
+				// }
+
+				// Устанавливаем статус ответа 201
+				w.WriteHeader(http.StatusCreated)
+				fmt.Fprint(w, config.FlagURL+"/"+alias)
+
+			} else {
+				http.Error(w, "Incorrect Content-Type. Expected text/plain", http.StatusBadRequest)
 			}
-
-			// Преобразуем тело запроса (тип []byte) в строку:
-			url := string(param)
-
-			// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
-			// //config.FlagURL соответствует "http://" + req.Host если не использовать аргументы
-			alias := random.NewRandomString(aliasLength)
-
-			// Объект urlSaver (переданный при создании хендлера из main)
-			// используется именно тут!
-			if urlSaver.SaveURL(url, alias) != nil {
-				fmt.Println("failed to add url")
-				return
-			}
-
-			// id, err := urlSaver.SaveURL(url, alias)
-
-			// if err != nil {
-			// 	fmt.Println("failed to add url")
-			// 	return
-			// }
-
-			// Устанавливаем статус ответа 201
-			w.WriteHeader(http.StatusCreated)
-			fmt.Fprint(w, config.FlagURL+"/"+alias)
-
-			// default:
-			// 	w.Header().Set("Location", "Method not allowed")
-			// 	w.WriteHeader(http.StatusBadRequest)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusBadRequest)
 		}
