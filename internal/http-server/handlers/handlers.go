@@ -11,9 +11,18 @@ import (
 
 const aliasLength = 6
 
-//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
+// // Не забыть, что до go generate нужно установить библиотеку
+// // mockery имеет сложную установку, видимо этой библиотекой нужно пользоваться
+// // уже на другом уровне
+// // Еще момент! go run с описанием версии относится к go 1.17, не факт,что так работает в 1.23
+// // Установку go install они не советуют (сайт https://vektra.github.io/mockery/latest/)
+// // go install github.com/vektra/mockery/v2@v2.20.0
+//go::generate go run github.com/vektra/mockery/v2@v2.20.0 --name=URLSaver
+
+// go::generate mockgen -source=handlers.go -destination=mocks/mock.go
 type URLSaver interface {
-	SaveURL(URL, alias string) (int64, error)
+	// Метод SaveURL реализуется в обоих хранилищах- maps и sqlite
+	SaveURL(URL, alias string) error
 }
 
 // Функция PostHandler уровня пакета handlers
@@ -36,16 +45,17 @@ func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 
 			// Объект urlSaver (переданный при создании хендлера из main)
 			// используется именно тут!
-			id, err := urlSaver.SaveURL(url, alias)
-
-			if err != nil {
+			if urlSaver.SaveURL(url, alias) != nil {
 				fmt.Println("failed to add url")
 				return
 			}
 
-			// возвращаем ответ с сообщением об успехе
-			// Это калька, в таком виде он не нужен
-			fmt.Println("url added, id= ", id)
+			// id, err := urlSaver.SaveURL(url, alias)
+
+			// if err != nil {
+			// 	fmt.Println("failed to add url")
+			// 	return
+			// }
 
 			// Устанавливаем статус ответа 201
 			w.WriteHeader(http.StatusCreated)
@@ -58,19 +68,22 @@ func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 	}
 }
 
-// моя выдумка
-type URLGeter interface {
+// В Go передача интерфейса параметром в функцию означает,
+// что функция может принимать на вход объект любого типа,
+// который реализует определенный интерфейс.
+type URLGetter interface {
+	// Метод GetURL реализуется в обоих хранилищах- maps и sqlite
+	// Так они оба реализуют интерфейс URLGetter
 	GetURL(alias string) (string, error)
 }
 
 // Функция GetHandler уровня пакета handlers
-func GetHandler(urlGeter URLGeter) http.HandlerFunc {
+func GetHandler(urlGeter URLGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			alias := strings.TrimPrefix(r.RequestURI, "/")
 
-			//url, err := maps.GetEntry(us, id)
 			url, err := urlGeter.GetURL(alias)
 			if err != nil {
 				w.Header().Set("Location", err.Error())
