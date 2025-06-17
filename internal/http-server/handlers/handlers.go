@@ -28,8 +28,9 @@ type URLSaver interface {
 // Функция PostHandler уровня пакета handlers
 func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
+		if r.Method == http.MethodPost {
+			//switch r.Method {
+			//case http.MethodPost:
 			param, err := io.ReadAll(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -61,9 +62,11 @@ func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 			w.WriteHeader(http.StatusCreated)
 			fmt.Fprint(w, config.FlagURL+"/"+alias)
 
-		default:
-			w.Header().Set("Location", "Method not allowed")
-			w.WriteHeader(http.StatusBadRequest)
+			// default:
+			// 	w.Header().Set("Location", "Method not allowed")
+			// 	w.WriteHeader(http.StatusBadRequest)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusBadRequest)
 		}
 	}
 }
