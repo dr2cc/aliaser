@@ -31,7 +31,7 @@ func NewURLStorage(d map[string]string) URLStorage {
 // }
 
 // метод SaveURL объектов URLStorage
-// реализует интерфейс URLSaver (Тузовский, описан в handlers.go)
+// реализует интерфейс URLSaver (описан в handlers.go)
 func (s URLStorage) SaveURL(url string, id string) error {
 	s.Data[id] = url
 	return nil
