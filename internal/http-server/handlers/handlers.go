@@ -31,12 +31,6 @@ func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 		if r.Method == http.MethodPost {
 			contentType := r.Header.Get("Content-Type")
 			if strings.Contains(contentType, "text/plain") {
-				// param, err := io.ReadAll(r.Body)
-				// if err != nil {
-				// 	http.Error(w, err.Error(), http.StatusBadRequest)
-				// 	return
-				// }
-
 				body, err := io.ReadAll(r.Body)
 				if err != nil {
 					http.Error(w, "Failed to read request body", http.StatusBadRequest)
