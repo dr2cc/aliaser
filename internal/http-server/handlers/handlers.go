@@ -42,7 +42,7 @@ func PostHandler(urlSaver URLSaver) http.HandlerFunc {
 				url := string(body)
 
 				// // Генерируем короткий идентификатор и создаем запись в нашем хранилище
-				// //config.FlagURL соответствует "http://" + req.Host если не использовать аргументы
+				// //config.FlagURL соответствует "http://" + r.Host если не использовать аргументы
 				alias := random.NewRandomString(aliasLength)
 
 				// Объект urlSaver (переданный при создании хендлера из main)
